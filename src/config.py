@@ -11,6 +11,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def _opt_float(name: str) -> float | None:
+    raw = os.getenv(name, "").strip()
+    return float(raw) if raw else None
+
+
 @dataclass(frozen=True)
 class Config:
     llm_provider: str = os.getenv("LLM_PROVIDER", "anthropic")
@@ -27,7 +32,22 @@ class Config:
     chunk_overlap: int = int(os.getenv("CHUNK_OVERLAP", "120"))
     top_k: int = int(os.getenv("TOP_K", "5"))
     similarity_threshold: float = float(os.getenv("SIMILARITY_THRESHOLD", "0.35"))
+
+    # v1 bounded loop (decompose / judge): max retrieval hops per sub-question.
     max_hops: int = int(os.getenv("MAX_HOPS", "3"))
+    # Tool-calling agent: hard cap on model turns per question.
+    max_steps: int = int(os.getenv("MAX_STEPS", "8"))
+    # Max rows a single SQL tool call may return to the model.
+    sql_row_limit: int = int(os.getenv("SQL_ROW_LIMIT", "50"))
+
+    # Where per-question JSONL traces are written ("" disables tracing).
+    trace_dir: str = os.getenv("TRACE_DIR", "traces")
+
+    # Optional: USD per million tokens, used only to add a cost column to
+    # eval reports. Left unset by default because list prices change --
+    # fill in the current numbers for the model you run.
+    price_input_per_mtok: float | None = _opt_float("PRICE_INPUT_PER_MTOK")
+    price_output_per_mtok: float | None = _opt_float("PRICE_OUTPUT_PER_MTOK")
 
 
 CONFIG = Config()

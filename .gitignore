@@ -7,3 +7,5 @@ data/index/
 *.egg-info/
 .DS_Store
 .pytest_cache/
+traces/
+evals/results/
